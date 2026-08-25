@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/dsh-usage-plugin.svg)](https://www.npmjs.com/package/dsh-usage-plugin) [![npm downloads](https://img.shields.io/npm/dm/dsh-usage-plugin.svg)](https://www.npmjs.com/package/dsh-usage-plugin) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A native sidebar usage panel for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web: shows your **official DeepSeek balance** and **token usage history** (today / last 7 / 30 days) right in the sidebar, with no separate process and no cross-origin calls.
+A native sidebar usage panel for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web: shows your **official DeepSeek balance** and **token usage history** (today / last 7 days) right in the sidebar, with no separate process and no cross-origin calls.
 
 A small trigger button appears at the bottom of the left sidebar (beside Settings). Click it to open the panel: live balance, today's input / output / cache tokens, and a 30-day trend computed from your own session logs.
 
