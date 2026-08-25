@@ -1,5 +1,7 @@
 # dsh-usage-plugin
 
+[![npm version](https://img.shields.io/npm/v/dsh-usage-plugin.svg)](https://www.npmjs.com/package/dsh-usage-plugin) [![npm downloads](https://img.shields.io/npm/dm/dsh-usage-plugin.svg)](https://www.npmjs.com/package/dsh-usage-plugin) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A native sidebar usage panel for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web: shows your **official DeepSeek balance** and **token usage history** (today / last 7 / 30 days) right in the sidebar, with no separate process and no cross-origin calls.
 
 A small trigger button appears at the bottom of the left sidebar (beside Settings). Click it to open the panel: live balance, today's input / output / cache tokens, and a 30-day trend computed from your own session logs.
@@ -25,7 +27,7 @@ A small trigger button appears at the bottom of the left sidebar (beside Setting
 From anywhere, run:
 
 ```sh
-dsh plugin --profile web add github:lurejewel/dsh-usage-plugin
+dsh plugin --profile web add dsh-usage-plugin
 ```
 
 That's it — the package declares a `dsh.bundle` patch, so `dsh plugin` automatically mounts it into the profile layer stack. Then:
@@ -36,8 +38,9 @@ That's it — the package declares a `dsh.bundle` patch, so `dsh plugin` automat
 
 ### Alternatives
 
+- **From GitHub**: `dsh plugin --profile web add github:lurejewel/dsh-usage-plugin`
+- **From a release tarball**: `dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.0.tar.gz`
 - **From a local checkout** (development): run the same command from inside this repo — `dsh plugin --profile web add .`
-- **From npm** (if/when published): `dsh plugin --profile web add dsh-usage-plugin`
 - **Manual mount on older setups**: add the row below to `~/.dsh/profiles/web/cordis.patch.yml`, then restart:
 
 ```yaml

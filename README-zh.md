@@ -1,5 +1,7 @@
 # dsh-usage-plugin
 
+[![npm version](https://img.shields.io/npm/v/dsh-usage-plugin.svg)](https://www.npmjs.com/package/dsh-usage-plugin) [![npm downloads](https://img.shields.io/npm/dm/dsh-usage-plugin.svg)](https://www.npmjs.com/package/dsh-usage-plugin) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web 的原生侧边栏用量面板：在侧边栏直接展示你的**官方 DeepSeek 余额**与 **token 用量历史**（今日 / 近 7 天 / 近 30 天）。无独立进程、无跨域请求。
 
 左侧边栏底部（Settings 旁）会出现一个用量按钮，点击弹出面板：实时余额、今日输入/输出/缓存 token 分列、以及基于你自己会话日志计算的 30 天趋势。
@@ -25,7 +27,7 @@
 任意目录下执行：
 
 ```sh
-dsh plugin --profile web add github:lurejewel/dsh-usage-plugin
+dsh plugin --profile web add dsh-usage-plugin
 ```
 
 包声明了 `dsh.bundle` patch，`dsh plugin` 会自动把它挂进 profile 的配置层栈，无需手动写挂载行。之后：
@@ -36,8 +38,9 @@ dsh plugin --profile web add github:lurejewel/dsh-usage-plugin
 
 ### 其他安装方式
 
+- **GitHub**：`dsh plugin --profile web add github:lurejewel/dsh-usage-plugin`
+- **Release tarball**：`dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.0.tar.gz`
 - **本地开发**：在本仓库目录内执行 `dsh plugin --profile web add .`
-- **npm**（若已发布）：`dsh plugin --profile web add dsh-usage-plugin`
 - **老版本手动挂载**：在 `~/.dsh/profiles/web/cordis.patch.yml` 追加以下内容后重启：
 
 ```yaml
