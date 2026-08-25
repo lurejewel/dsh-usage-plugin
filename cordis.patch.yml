@@ -1,0 +1,4 @@
+# dsh-usage-plugin: native sidebar usage panel (official balance + token usage history)
+- insert:
+    - id: dsh-usage-plugin
+      name: dsh-usage-plugin
