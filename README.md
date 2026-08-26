@@ -4,7 +4,7 @@
 
 A native sidebar usage panel for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web: shows your **official DeepSeek balance** and **token usage history** (today / last 7 days) right in the sidebar, with no separate process and no cross-origin calls.
 
-A small trigger button appears at the bottom of the left sidebar (beside Settings). Click it to open the panel: live balance, today's input / output / cache tokens, and a 30-day trend computed from your own session logs.
+A trigger button appears at the bottom of the left sidebar, above Settings — full-width with a label when the sidebar is expanded, a compact icon when collapsed. Click it to open the panel: live balance, today's input / output / cache tokens, and a 7-day trend computed from your own session logs.
 
 ## Features
 
