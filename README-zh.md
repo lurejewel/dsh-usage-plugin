@@ -39,7 +39,7 @@ dsh plugin --profile web add dsh-usage-plugin
 ### 其他安装方式
 
 - **GitHub**：`dsh plugin --profile web add github:lurejewel/dsh-usage-plugin`
-- **Release tarball**：`dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.0.tar.gz`
+- **Release tarball**：`dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.1.tar.gz`
 - **本地开发**：在本仓库目录内执行 `dsh plugin --profile web add .`
 - **老版本手动挂载**：在 `~/.dsh/profiles/web/cordis.patch.yml` 追加以下内容后重启：
 

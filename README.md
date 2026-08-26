@@ -39,7 +39,7 @@ That's it — the package declares a `dsh.bundle` patch, so `dsh plugin` automat
 ### Alternatives
 
 - **From GitHub**: `dsh plugin --profile web add github:lurejewel/dsh-usage-plugin`
-- **From a release tarball**: `dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.0.tar.gz`
+- **From a release tarball**: `dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.1.tar.gz`
 - **From a local checkout** (development): run the same command from inside this repo — `dsh plugin --profile web add .`
 - **Manual mount on older setups**: add the row below to `~/.dsh/profiles/web/cordis.patch.yml`, then restart:
 
