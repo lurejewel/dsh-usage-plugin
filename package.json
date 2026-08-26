@@ -1,6 +1,6 @@
 {
   "name": "dsh-usage-plugin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "DeepSeek Harness native sidebar usage panel: official balance + token usage history from session logs",
   "type": "module",
   "main": "lib/index.js",
