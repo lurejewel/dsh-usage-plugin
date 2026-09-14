@@ -17,7 +17,7 @@ A trigger button appears at the bottom of the left sidebar, above Settings — f
 
 | Requirement | Version |
 |---|---|
-| DeepSeek Harness | `>= 0.1.0-rc.7` (tested on `0.1.0-rc.7` and `0.1.1-rc.2`) |
+| DeepSeek Harness | `>= 0.1.0-rc.7` (verified on `0.1.5-rc.2`) |
 | Node.js | `>= 20` |
 | pnpm | `>= 10` (for `dsh plugin` installation) |
 | API key | an existing `DEEPSEEK_API_KEY` credential (the one DSH already uses) |
@@ -32,15 +32,33 @@ dsh plugin --profile web add dsh-usage-plugin
 
 That's it — the package declares a `dsh.bundle` patch, so `dsh plugin` automatically mounts it into the profile layer stack. Then:
 
-1. **Restart** `dsh web` (stop and start the process).
+1. **Restart** `dsh web` (stop and start the process). The loader tree is composed once at boot, so a plugin installed into a running server is not picked up until then.
 2. **Hard refresh** the browser (`Cmd/Ctrl+Shift+R`).
 3. Look for the usage icon at the bottom of the left sidebar.
+
+### Verifying the install
+
+`GET /api/dsh-usage/balance` and `GET /api/dsh-usage/stats?days=N` sit behind the same **process-token fence** as the rest of DSH's `/api` (dsh >= 0.1.5), so a bare `curl` gets `401 unauthorized`. Use the browser page, or pass the token that `dsh web` prints at startup:
+
+```sh
+# dsh web: http://127.0.0.1:3080/?token=XXXXXXXX
+node scripts/verify-install.mjs 3080 XXXXXXXX
+```
+
+The verifier ships with the package, so an npm install can run it from `~/.dsh/profiles/web/node_modules/dsh-usage-plugin`.
 
 ### Alternatives
 
 - **From GitHub**: `dsh plugin --profile web add github:lurejewel/dsh-usage-plugin`
-- **From a release tarball**: `dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.1.tar.gz`
-- **From a local checkout** (development): run the same command from inside this repo — `dsh plugin --profile web add .`
+- **From a release tarball**: `dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.2.tar.gz`
+- **From a local checkout** (development): run the same command from inside this repo. Quote the path: `dsh plugin` forwards its arguments to pnpm through a shell without quoting them, so an unquoted path containing spaces is split into several package specs — `D:\Software\DeepSeek Harness\dsh-usage-plugin` becomes `link:D:/Software/DeepSeek` plus a phantom `Harness\dsh-usage-plugin` dependency, and the plugin is dropped from `dsh.profile.bundles`:
+
+```sh
+dsh plugin --profile web add '"D:\Software\DeepSeek Harness\dsh-usage-plugin"'
+```
+
+`scripts/install-local.ps1` does exactly this.
+
 - **Manual mount on older setups**: add the row below to `~/.dsh/profiles/web/cordis.patch.yml`, then restart:
 
 ```yaml
@@ -75,6 +93,7 @@ Implementation notes worth knowing:
 - DSH session logs (`session.jsonl.zstd`) are **multiple concatenated zstd frames** (one frame per persistence batch); the reader scans frame-by-frame instead of assuming a single frame.
 - `assistant/message` and `assistant/chunk` events report the **same usage numbers for the same (turn, step)**; the reader de-duplicates by (turn, step) so totals are not double-counted.
 - The API key is resolved through DSH's `credentials` service — the same source the DeepSeek provider uses. Nothing is stored in the browser; all calls are same-origin.
+- Both routes inherit DSH's browser-trust fence, and on dsh >= 0.1.5 the client bundle is delivered as part of the shell's single combined `/plugins/??…` request rather than per-package URLs. Neither changes the browser half: it runs inside the authenticated page.
 
 ## Privacy & security
 
@@ -91,15 +110,18 @@ npm run test:standalone        # in-process E2E: real cordis + real API + real l
                               #   (needs a local DSH install with @deepseek-ai packages
                               #    reachable at $DSH_HOME/profiles/node_modules, a
                               #    DEEPSEEK_API_KEY credential, and session logs)
+npm run verify -- 3080 <token> # post-restart check against a running dsh web
 ```
 
 `lib/` is the shipped artifact and doubles as readable source (plain ESM, documented).
 
 ### Windows helper scripts (optional)
 
-- `scripts/install-local.ps1` — one-click local install (`dsh plugin --profile web add .`).
-- `scripts/restart-web.ps1` — restart `dsh web` and run `scripts/verify-install.mjs`.
-- `scripts/verify-install.mjs` — post-restart check: stats/balance routes, client bundle, boot manifest.
+- `scripts/install-local.ps1` — one-click local install as a `link:` to this repo (quotes the path for the `dsh plugin` shell hop).
+- `scripts/restart-web.ps1` — restart `dsh web`, read the tokenized URL from the server log, then run the verification.
+- `scripts/verify-install.mjs` — post-restart check: token exchange, stats/balance routes, materialized client row, combined bundle contents. On dsh >= 0.1.5 it needs `<port> <token>`.
+
+The two `.ps1` helpers live in the git checkout only; `verify-install.mjs` is published in the npm package as well.
 
 ## License
 

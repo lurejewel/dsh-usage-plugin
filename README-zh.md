@@ -17,7 +17,7 @@
 
 | 要求 | 版本 |
 |---|---|
-| DeepSeek Harness | `>= 0.1.0-rc.7`（已在 `0.1.0-rc.7` 与 `0.1.1-rc.2` 上验证） |
+| DeepSeek Harness | `>= 0.1.0-rc.7`（已在 `0.1.5-rc.2` 上验证） |
 | Node.js | `>= 20` |
 | pnpm | `>= 10`（用于 `dsh plugin` 安装） |
 | API Key | 已有 `DEEPSEEK_API_KEY` 凭据（即 DSH 本身在用的那个） |
@@ -32,15 +32,33 @@ dsh plugin --profile web add dsh-usage-plugin
 
 包声明了 `dsh.bundle` patch，`dsh plugin` 会自动把它挂进 profile 的配置层栈，无需手动写挂载行。之后：
 
-1. **重启** `dsh web`（停掉再启动进程）；
+1. **重启** `dsh web`（停掉再启动进程）。加载树只在 boot 时组装一次，装到正在运行的实例里不会被感知；
 2. 浏览器**硬刷新**（`Cmd/Ctrl+Shift+R`）；
 3. 左侧边栏底部出现用量图标。
+
+### 安装后自检
+
+`GET /api/dsh-usage/balance` 与 `GET /api/dsh-usage/stats?days=N` 和 DSH 其余 `/api` 一样在**进程令牌栅栏**之后（dsh >= 0.1.5），裸 `curl` 只会拿到 `401 unauthorized`。用浏览器页面，或者带上 `dsh web` 启动时打印的令牌：
+
+```sh
+# dsh web: http://127.0.0.1:3080/?token=XXXXXXXX
+node scripts/verify-install.mjs 3080 XXXXXXXX
+```
+
+自检脚本随包发布，npm 安装的用户可以在 `~/.dsh/profiles/web/node_modules/dsh-usage-plugin` 里执行它。
 
 ### 其他安装方式
 
 - **GitHub**：`dsh plugin --profile web add github:lurejewel/dsh-usage-plugin`
-- **Release tarball**：`dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.1.tar.gz`
-- **本地开发**：在本仓库目录内执行 `dsh plugin --profile web add .`
+- **Release tarball**：`dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.2.tar.gz`
+- **本地开发**：在本仓库目录内执行安装命令，但**路径必须带引号**——`dsh plugin` 把参数经 shell 转发给 pnpm 时不加引号，含空格的路径会被拆成多个 spec：`D:\Software\DeepSeek Harness\dsh-usage-plugin` 会变成 `link:D:/Software/DeepSeek` 加一个假依赖 `Harness\dsh-usage-plugin`，并让插件从 `dsh.profile.bundles` 里消失：
+
+```sh
+dsh plugin --profile web add '"D:\Software\DeepSeek Harness\dsh-usage-plugin"'
+```
+
+`scripts/install-local.ps1` 已经按这个方式处理。
+
 - **老版本手动挂载**：在 `~/.dsh/profiles/web/cordis.patch.yml` 追加以下内容后重启：
 
 ```yaml
@@ -75,6 +93,7 @@ lib/usage-history.js  会话日志读取器（zstd 多帧扫描 + 按步去重 +
 - DSH 会话日志（`session.jsonl.zstd`）是**多个独立 zstd 帧拼接**（每次持久化一批事件一帧）；读取器逐帧扫描，而不是假定单帧。
 - `assistant/message` 与 `assistant/chunk` 事件会对**同一个 (turn, step) 重复上报相同数值**；读取器按 (turn, step) 去重，避免总量翻倍。
 - API Key 通过 DSH 的 `credentials` 服务解析——与 DeepSeek 模型提供商同源；浏览器不存任何 Key，所有请求均同源。
+- 两个路由都继承 DSH 的浏览器信任栅栏；且 dsh >= 0.1.5 把客户端 bundle 合并进 shell 的单个 `/plugins/??…` 请求，不再按包单独下发。这两点都不影响浏览器半——它运行在已鉴权的页面里。
 
 ## 隐私与安全
 
@@ -90,15 +109,18 @@ npm run test:client-boot       # 在 Node 中用 mock slots 启动真实 client 
 npm run test:standalone        # 进程内 E2E：真实 cordis + 真实接口 + 真实日志
                               #   （需要本机 DSH 安装：$DSH_HOME/profiles/node_modules
                               #    下可解析 @deepseek-ai 包、有 DEEPSEEK_API_KEY 凭据与会话日志）
+npm run verify -- 3080 <token> # 针对正在运行的 dsh web 做安装后自检
 ```
 
 `lib/` 即交付产物，同时也是可读源码（纯 ESM，带注释）。
 
 ### Windows 辅助脚本（可选）
 
-- `scripts/install-local.ps1` — 一键本地安装（等价 `dsh plugin --profile web add .`）。
-- `scripts/restart-web.ps1` — 重启 `dsh web` 并运行 `scripts/verify-install.mjs`。
-- `scripts/verify-install.mjs` — 重启后自检：stats/balance 路由、client bundle、boot manifest。
+- `scripts/install-local.ps1` — 一键本地安装（以 `link:` 指向本仓库，路径按 `dsh plugin` 的 shell 转发要求加了引号）。
+- `scripts/restart-web.ps1` — 重启 `dsh web`，从服务日志里取回带令牌的地址，再跑自检。
+- `scripts/verify-install.mjs` — 重启后自检：令牌换 cookie、stats/balance 路由、客户端行是否物化、合并 bundle 内容。dsh >= 0.1.5 下需要 `<port> <token>`。
+
+两个 `.ps1` 只在 git 仓库里；`verify-install.mjs` 同时随 npm 包发布。
 
 ## License
 
