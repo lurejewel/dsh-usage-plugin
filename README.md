@@ -50,7 +50,7 @@ The verifier ships with the package, so an npm install can run it from `~/.dsh/p
 ### Alternatives
 
 - **From GitHub**: `dsh plugin --profile web add github:lurejewel/dsh-usage-plugin`
-- **From a release tarball**: `dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.2.tar.gz`
+- **From a release tarball**: `dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.3.tar.gz`
 - **From a local checkout** (development): run the same command from inside this repo. Quote the path: `dsh plugin` forwards its arguments to pnpm through a shell without quoting them, so an unquoted path containing spaces is split into several package specs — `D:\Software\DeepSeek Harness\dsh-usage-plugin` becomes `link:D:/Software/DeepSeek` plus a phantom `Harness\dsh-usage-plugin` dependency, and the plugin is dropped from `dsh.profile.bundles`:
 
 ```sh
@@ -90,7 +90,8 @@ lib/usage-history.js  Session-log reader (zstd frame scan + per-step dedup + dai
 
 Implementation notes worth knowing:
 
-- DSH session logs (`session.jsonl.zstd`) are **multiple concatenated zstd frames** (one frame per persistence batch); the reader scans frame-by-frame instead of assuming a single frame.
+- DSH session logs (`session.<generation>.jsonl.zstd`) are **multiple concatenated zstd frames** (one frame per persistence batch); the reader scans frame-by-frame instead of assuming a single frame. One damaged frame costs only its own rows.
+- Session artifacts are **versioned format generations** — `session.jsonl.zstd` is the released v0 root, `session.vN.jsonl.zstd` a later one, and DSH always writes and reads the highest generation present in a session directory. The reader therefore selects the **highest canonical generation per session** (never the plain v0 file alone, and never more than one file per session): a lower generation stops at that session's migration point, while reading two of them would double-count.
 - `assistant/message` and `assistant/chunk` events report the **same usage numbers for the same (turn, step)**; the reader de-duplicates by (turn, step) so totals are not double-counted.
 - The API key is resolved through DSH's `credentials` service — the same source the DeepSeek provider uses. Nothing is stored in the browser; all calls are same-origin.
 - Both routes inherit DSH's browser-trust fence, and on dsh >= 0.1.5 the client bundle is delivered as part of the shell's single combined `/plugins/??…` request rather than per-package URLs. Neither changes the browser half: it runs inside the authenticated page.

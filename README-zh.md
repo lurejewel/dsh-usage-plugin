@@ -50,7 +50,7 @@ node scripts/verify-install.mjs 3080 XXXXXXXX
 ### 其他安装方式
 
 - **GitHub**：`dsh plugin --profile web add github:lurejewel/dsh-usage-plugin`
-- **Release tarball**：`dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.2.tar.gz`
+- **Release tarball**：`dsh plugin --profile web add https://github.com/lurejewel/dsh-usage-plugin/archive/refs/tags/v0.1.3.tar.gz`
 - **本地开发**：在本仓库目录内执行安装命令，但**路径必须带引号**——`dsh plugin` 把参数经 shell 转发给 pnpm 时不加引号，含空格的路径会被拆成多个 spec：`D:\Software\DeepSeek Harness\dsh-usage-plugin` 会变成 `link:D:/Software/DeepSeek` 加一个假依赖 `Harness\dsh-usage-plugin`，并让插件从 `dsh.profile.bundles` 里消失：
 
 ```sh
@@ -90,7 +90,8 @@ lib/usage-history.js  会话日志读取器（zstd 多帧扫描 + 按步去重 +
 
 值得了解的实现细节：
 
-- DSH 会话日志（`session.jsonl.zstd`）是**多个独立 zstd 帧拼接**（每次持久化一批事件一帧）；读取器逐帧扫描，而不是假定单帧。
+- DSH 会话日志（`session.<代>.jsonl.zstd`）是**多个独立 zstd 帧拼接**（每次持久化一批事件一帧）；读取器逐帧扫描，而不是假定单帧。单个帧损坏只丢它自己的行，不影响整份历史。
+- 会话产物是**带版本的格式代**：`session.jsonl.zstd` 是已发布的 v0 根，`session.vN.jsonl.zstd` 是更晚的代；DSH 始终写入并读取会话目录里**数值最高**的那一代。因此读取器按会话目录只取**最高的规范代**：读低代会漏掉该会话迁移之后追加的全部事件，而同时读两代又会重复计数。
 - `assistant/message` 与 `assistant/chunk` 事件会对**同一个 (turn, step) 重复上报相同数值**；读取器按 (turn, step) 去重，避免总量翻倍。
 - API Key 通过 DSH 的 `credentials` 服务解析——与 DeepSeek 模型提供商同源；浏览器不存任何 Key，所有请求均同源。
 - 两个路由都继承 DSH 的浏览器信任栅栏；且 dsh >= 0.1.5 把客户端 bundle 合并进 shell 的单个 `/plugins/??…` 请求，不再按包单独下发。这两点都不影响浏览器半——它运行在已鉴权的页面里。
